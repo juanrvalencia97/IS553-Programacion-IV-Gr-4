@@ -1,22 +1,19 @@
-/* Parcial #1
+/* Taller Java Swing
 * Autor: Juan Alejandro Rojas Valencia
-* Objetivo: Crear un programa basico que permita registrar usuarios e iniciar sesion en un sistema de reservas de hotel.      
+* Objetivo: implementar un sistema básico de inicio de sesión y registro de usuarios utilizando Java Swing
 */
 
 //Clases externas utilizadas
+import javax.swing.*;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.util.ArrayList;
-import java.util.Scanner;
 
-//Clase principal del proyecto
+//Clase Principal
 public class ProyectoFinal {
-
-    //Objeto scanner utilizado para la entrada de datos externa
-    public static Scanner leerDatoTeclado = new Scanner(System.in);
-
-    //Lista que almacena los datos de usuarios registrados en el sistema.
+    //Lista que almacena los datos de usuarios registrados en el 
     public static ArrayList<String[]> usuarios = new ArrayList<>();
 
-    //Constantes utilizadas para el manejo de datos de inicio de sesion en el array "usuario" mediante indices.
     public static final int TIPO_IDENTIFICACION = 0;
     public static final int DOCUMENTO_IDENTIFICACION = 1;
     public static final int NOMBRES = 2;
@@ -27,98 +24,160 @@ public class ProyectoFinal {
     public static final int TELEFONO_CONTACTO = 7;
     public static final int CONTRASENA = 8;
 
-    //Metodo principal donde se inicia la ejecucion del programa mediante el llamado del menu.
+    //Metodo principal
     public static void main(String[] args) {
-        mostrarMenuLoginRegistro();
-    }
-
-    //Metodo que muestra el menu de inicio de sesion y registro de usuarios.
-    public static void mostrarMenuLoginRegistro() {
-        boolean salir = false;
-        do {
-            System.out.println("Bienvenido a MyHotel ...");
-            System.out.println("Mas que un lugar para descansar.");
-            System.out.println("--------------------------------------------");
-            System.out.println("Ingrese la opcion deseada:");
-            System.out.println("1. Registrarse como cliente.");
-            System.out.println("2. Iniciar Sesion.");
-            System.out.println("3. Salir. ");
-
-            int opcion = leerDatoTeclado.nextInt();
-            leerDatoTeclado.nextLine(); // Limpiar el buffer
-
-            switch (opcion) {
-                case 1:
-                    solicitarDatosDeRegistro(); //Se hace el llamado del metodo para el formulario de registro
-                    break;
-                case 2:
-                    boolean loginExitoso = iniciarSesion(); //Se hace el llamado del metodo para iniciar sesion
-                    //Se verifica si se inicia sesion correctamente mediante un booleano
-                    if (loginExitoso) {
-                        System.out.println("Usuario logueado correctamente. ");
-                    } else {
-                        System.out.println("Usuario incorrecto, intente una vez más. ");
-                    }
-                    break;
-                case 3:
-                    System.out.println("¡Hasta pronto!"); //mensaje de salida
-                    salir = true;
-                    break;
-                default:
-                    System.out.println("Opción no válida, por favor seleccione nuevamente.");
-                    break;
+        SwingUtilities.invokeLater(new Runnable() {
+            public void run() {
+                mostrarVentanaLogin();
             }
-        } while (!salir);
+        });
     }
 
-    //Metodo que solicita los datos de registro del usuario.
-    public static void solicitarDatosDeRegistro() {
-        System.out.println("Tipo de identificación:");
-        String tipoIdentificacion = leerDatoTeclado.nextLine();
+    //Metodo que muestra la ventana de inicio de sesion
+    public static void mostrarVentanaLogin() {
+        JFrame frame = new JFrame("Inicio de Sesión");
+        frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        JPanel panel = new JPanel();
+        panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
 
-        System.out.println("Documento de identificación:");
-        String documentoIdentificacion = leerDatoTeclado.nextLine();
+        JLabel labelCorreo = new JLabel("Correo electrónico:");
+        JTextField campoCorreo = new JTextField(20);
+        JLabel labelContrasena = new JLabel("Contraseña:");
+        JPasswordField campoContrasena = new JPasswordField(20);
 
-        System.out.println("Nombres:");
-        String nombres = leerDatoTeclado.nextLine();
+        JButton botonLogin = new JButton("Iniciar Sesión");
+        JButton botonRegistro = new JButton("Registrarse como cliente");
 
-        System.out.println("Apellidos:");
-        String apellidos = leerDatoTeclado.nextLine();
+        //Accion al presionar el boton de iniciar sesion
+        botonLogin.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent e) {
+                String correo = campoCorreo.getText();
+                String contrasena = new String(campoContrasena.getPassword());
+                //Verificar credenciales
+                if (iniciarSesion(correo, contrasena)) {
+                    JOptionPane.showMessageDialog(null, "Bienvenido a MyHotel");
+                } else {
+                    JOptionPane.showMessageDialog(null, "Credenciales incorrectas, intente nuevamente.");
+                }
+            }
+        });
 
-        System.out.println("Correo electrónico:");
-        String correoElectronico = leerDatoTeclado.nextLine();
+        //Accion al presionar el boton de registro
+        botonRegistro.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent e) {
+                mostrarVentanaRegistro();
+                frame.dispose(); // Cerrar la ventana de inicio de sesión
+            }
+        });
 
-        System.out.println("Dirección de residencia:");
-        String direccionResidencia = leerDatoTeclado.nextLine();
+        //Anadir componentes al panel
+        panel.add(labelCorreo);
+        panel.add(campoCorreo);
+        panel.add(labelContrasena);
+        panel.add(campoContrasena);
+        panel.add(botonLogin);
+        panel.add(botonRegistro);
 
-        System.out.println("Ciudad de residencia:");
-        String ciudadResidencia = leerDatoTeclado.nextLine();
-
-        System.out.println("Teléfono de contacto:");
-        String telefonoContacto = leerDatoTeclado.nextLine();
-
-        System.out.println("Contraseña:");
-        String contrasena = leerDatoTeclado.nextLine();
-
-        System.out.println("Confirmar Contraseña:");
-        String confirmarContrasena = leerDatoTeclado.nextLine();
-
-        //se comprueba si las contrasenas coinciden, en caso verdadero se registra el usuario
-        if (!contrasena.equals(confirmarContrasena)) {
-            System.out.println("Las contraseñas no coinciden. Intente nuevamente.");
-            solicitarDatosDeRegistro();//llamado recursivo para llenar los datos nuevamente
-        } else {
-            registrarUsuario(tipoIdentificacion, documentoIdentificacion, nombres, apellidos, correoElectronico,
-                    direccionResidencia, ciudadResidencia, telefonoContacto, contrasena);
-            System.out.println("Usuario registrado exitosamente.");
-        }
+        //Anadir panel al frame y mostrar la ventana
+        frame.getContentPane().add(panel);
+        frame.pack();
+        frame.setVisible(true);
     }
 
-    //metodo para asignar los datos de usuario en el array.
+    //Metodo que muestra la ventana de registro de usuario
+    public static void mostrarVentanaRegistro() {
+        JFrame frame = new JFrame("Registro de Usuario");
+        frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        JPanel panel = new JPanel();
+        panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
+
+        //Creacion de etiquetas y campos de texto para el formulario
+        JLabel labelTipoIdentificacion = new JLabel("Tipo de identificación:");
+        JTextField campoTipoIdentificacion = new JTextField(20);
+        JLabel labelDocumentoIdentificacion = new JLabel("Documento de identificación:");
+        JTextField campoDocumentoIdentificacion = new JTextField(20);
+        JLabel labelNombres = new JLabel("Nombres:");
+        JTextField campoNombres = new JTextField(20);
+        JLabel labelApellidos = new JLabel("Apellidos:");
+        JTextField campoApellidos = new JTextField(20);
+        JLabel labelCorreoElectronico = new JLabel("Correo electrónico:");
+        JTextField campoCorreoElectronico = new JTextField(20);
+        JLabel labelDireccionResidencia = new JLabel("Dirección de residencia:");
+        JTextField campoDireccionResidencia = new JTextField(20);
+        JLabel labelCiudadResidencia = new JLabel("Ciudad de residencia:");
+        JTextField campoCiudadResidencia = new JTextField(20);
+        JLabel labelTelefonoContacto = new JLabel("Teléfono de contacto:");
+        JTextField campoTelefonoContacto = new JTextField(20);
+        JLabel labelContrasena = new JLabel("Contraseña:");
+        JPasswordField campoContrasena = new JPasswordField(20);
+        JLabel labelConfirmarContrasena = new JLabel("Confirmar Contraseña:");
+        JPasswordField campoConfirmarContrasena = new JPasswordField(20);
+
+        JButton botonRegistrar = new JButton("Registrar Usuario");
+
+        //Accion al presionar el boton de registrar
+        botonRegistrar.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent e) {
+                //Obtener los valores de los campos de texto
+                String tipoIdentificacion = campoTipoIdentificacion.getText();
+                String documentoIdentificacion = campoDocumentoIdentificacion.getText();
+                String nombres = campoNombres.getText();
+                String apellidos = campoApellidos.getText();
+                String correoElectronico = campoCorreoElectronico.getText();
+                String direccionResidencia = campoDireccionResidencia.getText();
+                String ciudadResidencia = campoCiudadResidencia.getText();
+                String telefonoContacto = campoTelefonoContacto.getText();
+                String contrasena = new String(campoContrasena.getPassword());
+                String confirmarContrasena = new String(campoConfirmarContrasena.getPassword());
+
+                //Validar contrasena y registro del usuario
+                if (!contrasena.equals(confirmarContrasena)) {
+                    JOptionPane.showMessageDialog(null, "Las contraseñas no coinciden. Intente nuevamente.");
+                } else {
+                    registrarUsuario(tipoIdentificacion, documentoIdentificacion, nombres, apellidos,
+                            correoElectronico, direccionResidencia, ciudadResidencia, telefonoContacto, contrasena);
+                    JOptionPane.showMessageDialog(null, "Usuario registrado exitosamente.");
+                    frame.dispose(); // Cerrar la ventana de registro
+                    mostrarVentanaLogin(); // Volver a la ventana de inicio de sesión
+                }
+            }
+        });
+
+        //Colocar los componentes al panel
+        panel.add(labelTipoIdentificacion);
+        panel.add(campoTipoIdentificacion);
+        panel.add(labelDocumentoIdentificacion);
+        panel.add(campoDocumentoIdentificacion);
+        panel.add(labelNombres);
+        panel.add(campoNombres);
+        panel.add(labelApellidos);
+        panel.add(campoApellidos);
+        panel.add(labelCorreoElectronico);
+        panel.add(campoCorreoElectronico);
+        panel.add(labelDireccionResidencia);
+        panel.add(campoDireccionResidencia);
+        panel.add(labelCiudadResidencia);
+        panel.add(campoCiudadResidencia);
+        panel.add(labelTelefonoContacto);
+        panel.add(campoTelefonoContacto);
+        panel.add(labelContrasena);
+        panel.add(campoContrasena);
+        panel.add(labelConfirmarContrasena);
+        panel.add(campoConfirmarContrasena);
+        //Colocar boton de registro en el panel
+        panel.add(botonRegistrar);
+
+        //Anadir panel al frame y mostrar la ventana
+        frame.getContentPane().add(panel);
+        frame.pack();
+        frame.setVisible(true);
+    }
+
+    //Metodo para registrar un nuevo usuario en la lista de usuarios
     public static void registrarUsuario(String tipoIdentificacion, String documentoIdentificacion, String nombres,
-            String apellidos, String correoElectronico, String direccionResidencia, String ciudadResidencia,
-            String telefonoContacto, String contrasena) {
-        String[] usuario = new String[10];
+                                        String apellidos, String correoElectronico, String direccionResidencia,
+                                        String ciudadResidencia, String telefonoContacto, String contrasena) {
+        String[] usuario = new String[9];  
         usuario[TIPO_IDENTIFICACION] = tipoIdentificacion;
         usuario[DOCUMENTO_IDENTIFICACION] = documentoIdentificacion;
         usuario[NOMBRES] = nombres;
@@ -128,40 +187,16 @@ public class ProyectoFinal {
         usuario[CIUDAD_RESIDENCIA] = ciudadResidencia;
         usuario[TELEFONO_CONTACTO] = telefonoContacto;
         usuario[CONTRASENA] = contrasena;
-        //Se agrega usuario con sus datos como un nuevo componente del ArrayList usuarios
         usuarios.add(usuario);
     }
 
-    //Metodo que solicita los datos de inicio de sesion del usuario, si ya se ha registrado.
-    public static boolean iniciarSesion() {
-        int intentosFallidos = 0;
-        //Se utiliza un booleano para verificar si se inicia sesion correctamente.
-        boolean loginExitoso = false;
-        do{
-            System.out.println("Correo electrónico:");
-            String correoElectronico = leerDatoTeclado.nextLine();
-
-            System.out.println("Contraseña:");
-            String contrasena = leerDatoTeclado.nextLine();
-
-        
-            //Se itera sobre la lista para verificar que el usuario exista y que las credenciales sean correctas.
-            for (String[] usuario : usuarios) {
-                if (usuario[CORREO_ELECTRONICO].equals(correoElectronico) && usuario[CONTRASENA].equals(contrasena)) {
-                    return true;
-                }
+    //Metodo para iniciar sesion comparando correo electronico y contrasena con las registros existentes
+    public static boolean iniciarSesion(String correoElectronico, String contrasena) {
+        for (String[] usuario : usuarios) {
+            if (usuario[CORREO_ELECTRONICO].equals(correoElectronico) && usuario[CONTRASENA].equals(contrasena)) {
+                return true;
             }
-
-            intentosFallidos++;
-            //Si se supera el numero de intentos fallidos se sale del programa.
-            if (intentosFallidos >= 3) {
-                System.out.println("Ha alcanzado el limite de intentos fallidos. Saliendo del programa.");
-                System.exit(0);
-            }else{
-                System.out.println("Credenciales incorrectas, intente nuevamente.");
-            }
-        }while(!loginExitoso);
-
+        }
         return false;
     }
 }
